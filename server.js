@@ -58,7 +58,7 @@ function loadHTTP(interactionModel, argumentTransformer) {
     const app = require('./lib/protocols/http')(fn, interactionModel, argumentTransformer);
 
     return () => {
-        const server = app.listen(HTTP_PORT, HOST);
+        const server = app.listen(HTTP_PORT || 8080, HOST);
         console.log(`HTTP running on ${HOST === '0.0.0.0' ? 'localhost' : HOST}:${HTTP_PORT}`);
         return server;
     };
