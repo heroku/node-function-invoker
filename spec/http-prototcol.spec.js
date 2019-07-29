@@ -19,6 +19,7 @@ const makeServer = require('../lib/protocols/http');
 const argumentTransformers = require('../lib/argument-transformers');
 const interactionModels = require('../lib/interaction-models');
 const request = require('supertest');
+const Cloudevent = require("cloudevents-sdk")
 
 function makeLocalServer(fn) {
     const argumentTransformer = argumentTransformers[fn.$argumentType || 'payload'];
@@ -778,6 +779,46 @@ describe('http', () => {
                     expect(res.headers['error']).toBeUndefined();
                     expect(res.text).toEqual('name=project%20riff&email=riff%40example.com');
 
+                    done();
+                });
+        });
+
+        it('should handle structured cloudevents', done => {
+            const respCloudEvent = new Cloudevent()
+                .type("com.node-function-invoker.tests")
+                .source("should handle structured cloudevents");
+            fn = jasmine.createSpy('fn', payload => {
+                payload.getType()
+                return respCloudEvent
+            }).and.callThrough();
+            app = makeLocalServer(fn);
+
+            request(app)
+                .post('/')
+                .set('Accept', 'application/cloudevents+json')
+                .set('Content-Type', 'application/cloudevents+json')
+                .send({
+                    "specversion": "0.2",
+                    "type": "com.github.pull.create",
+                    "source": "https://github.com/cloudevents/spec/pull/123",
+                    "id": "45c83279-c8a1-4db6-a703-b3768db93887",
+                    "time": "2019-06-21T17:31:00Z",
+                    "contenttype": "application/json",
+                    "data": {
+                        "much": "wow"
+                    }
+                })
+                .expect(200)
+                .end(function(err, res) {
+                    if (err) throw err;
+
+                    expect(fn).toHaveBeenCalledTimes(1);
+                    expect(res.headers['error']).toBeUndefined();
+
+                    expect(fn.calls.mostRecent().args[0] instanceof Cloudevent).toBeTruthy();
+                    expect(fn.calls.mostRecent().args[0].getType()).toEqual("com.github.pull.create");
+                    expect(res.headers['content-type']).toEqual('application/cloudevents+json');
+                    expect(res.text).toEqual(respCloudEvent.toString());
                     done();
                 });
         });

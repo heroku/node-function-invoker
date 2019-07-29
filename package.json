@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@projectriff/message": "1.0.0",
+    "cloudevents-sdk": "^0.2.6",
     "express": "4.17.1",
     "mississippi": "4.0.0",
     "negotiator": "0.6.2"
