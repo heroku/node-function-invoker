@@ -782,6 +782,27 @@ describe('http', () => {
                 });
         });
 
+        it('should handle binary cloudevents', done => {
+            request(app)
+                .post('/')
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/cloudevents')
+                .send('"riff"')
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) throw err;
+
+                    expect(fn).toHaveBeenCalledTimes(1);
+                    expect(fn).toHaveBeenCalledWith('riff');
+
+                    expect(res.headers['content-type']).toMatch('application/json');
+                    expect(res.headers['error']).toBeUndefined();
+                    expect(res.text).toEqual('"riff"');
+
+                    done();
+                });
+        });
+
         it('should handle a content-type charset', done => {
             request(app)
                 .post('/')
