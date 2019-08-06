@@ -782,22 +782,43 @@ describe('http', () => {
                 });
         });
 
-        it('should handle binary cloudevents', done => {
+        it('should handle structured cloudevents', done => {
             request(app)
                 .post('/')
                 .set('Accept', 'application/json')
-                .set('Content-Type', 'application/cloudevents')
-                .send('"riff"')
+                .set('Content-Type', 'application/cloudevents+json')
+                .send('{"riff":true}')
                 .expect(200)
                 .end(function (err, res) {
                     if (err) throw err;
 
                     expect(fn).toHaveBeenCalledTimes(1);
-                    expect(fn).toHaveBeenCalledWith('riff');
+                    expect(fn).toHaveBeenCalledWith({"riff":true});
 
                     expect(res.headers['content-type']).toMatch('application/json');
                     expect(res.headers['error']).toBeUndefined();
-                    expect(res.text).toEqual('"riff"');
+                    expect(res.text).toEqual('{"riff":true}');
+
+                    done();
+                });
+        });
+
+        it('should handle binary cloudevents', done => {
+            request(app)
+                .post('/')
+                .set('Accept', 'application/cloudevents')
+                .set('Content-Type', 'application/cloudevents')
+                .send('riff')
+                .expect(200)
+                .end(function (err, res) {
+                    if (err) throw err;
+
+                    expect(fn).toHaveBeenCalledTimes(1);
+                    expect(fn).toHaveBeenCalledWith(Buffer.from('riff'));
+
+                    expect(res.headers['content-type']).toMatch('application/cloudevents');
+                    expect(res.headers['error']).toBeUndefined();
+                    expect(res.text).toEqual('riff');
 
                     done();
                 });
