@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+const fs = require('fs')
+const https = require('https')
 const { FUNCTION_URI, RIFF_FUNCTION_INVOKER_PROTOCOL } = process.env;
 const PORT = process.env.HTTP_PORT || process.env.PORT || '8080';
 const HOST = process.env.HOST || '0.0.0.0';
@@ -60,9 +61,21 @@ function loadHTTP(interactionModel, argumentTransformer) {
     const app = require('./lib/protocols/http')(fn, interactionModel, argumentTransformer);
 
     return () => {
-        const server = app.listen(PORT, HOST);
-        console.log(`HTTP running on ${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
-        return server;
+        if (process.env.SERVER_CERT) {
+            const httpsOptions = {
+                cert: fs.readFileSync(process.env.SERVER_CERT),
+                key: fs.readFileSync(process.env.SERVER_CERT_KEY)
+            }
+            const server = https.createServer(httpsOptions, app)
+                .listen(PORT, HOST)
+            console.log(`HTTPS running on ${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+            return server
+        }
+        else {
+            const server = app.listen(PORT, HOST);
+            console.log(`HTTP running on ${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+            return server
+        }
     };
 }
 
