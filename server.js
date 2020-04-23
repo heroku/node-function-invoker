@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+console.log(`Node started in ${process.uptime() * 1000}ms`);
 
 const { FUNCTION_URI, RIFF_FUNCTION_INVOKER_PROTOCOL } = process.env;
 const PORT = process.env.HTTP_PORT || process.env.PORT || '8080';
@@ -35,8 +36,6 @@ const fn = (fn => {
 })(require(FUNCTION_URI));
 
 let httpServer;
-
-console.log(`Node started in ${process.uptime() * 1000}ms`);
 
 // handle startup
 async function init() {
